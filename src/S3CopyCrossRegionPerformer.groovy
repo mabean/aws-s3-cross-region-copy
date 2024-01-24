@@ -34,7 +34,7 @@ class S3CopyCrossRegionPerformer {
         s3ClientBuilder = AmazonS3ClientBuilder//
             .standard()//
             .withCredentials(credentialProvidor)//
-            .withEndpointConfiguration(new EndpointConfiguration(sourceBucket, sourceRegion))//
+            .withEndpointConfiguration(new EndpointConfiguration("https://s3.${sourceRegion}.amazonaws.com", sourceRegion))//
             .withClientConfiguration(clientCfg)//
             .build();
         ListObjectsRequest lor = new ListObjectsRequest()
@@ -49,7 +49,7 @@ class S3CopyCrossRegionPerformer {
             s3desClientBuilder = AmazonS3ClientBuilder//
                 .standard()//
                 .withCredentials(credentialProvidor)//
-                .withEndpointConfiguration(new EndpointConfiguration(targetBucket, targetRegion))//
+                .withEndpointConfiguration(new EndpointConfiguration("https://s3.${targetRegion}.amazonaws.com", targetRegion))//
                 .withClientConfiguration(clientCfg)//
                 .build();
 
