@@ -37,10 +37,12 @@ class S3CopyCrossRegionPerformer {
             .withEndpointConfiguration(new EndpointConfiguration("https://s3.${sourceRegion}.amazonaws.com", sourceRegion))//
             .withClientConfiguration(clientCfg)//
             .build();
+        script.echo("Looking for ${sourceFile} on ${sourceBucket}")
         ListObjectsRequest lor = new ListObjectsRequest()
             .withBucketName(sourceBucket)
             .withPrefix(sourceFile);
         ObjectListing objectListing = s3ClientBuilder.listObjects(lor);
+        script.echo("Uploading ${objectListing.getObjectSummaries()}")
         for (S3ObjectSummary summary: objectListing.getObjectSummaries()) {
 
             SOURCE_KEY=summary.getKey();
@@ -62,7 +64,7 @@ class S3CopyCrossRegionPerformer {
                 s3ClientBuilder, null);
             copy.waitForCopyResult();   
         }
-        transferManager.shutdownNow();
+        transferManager?.shutdownNow();
         s3ClientBuilder.shutdown();
         s3desClientBuilder.shutdown();
     }
