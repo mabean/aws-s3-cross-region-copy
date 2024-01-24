@@ -34,7 +34,6 @@ class S3CopyCrossRegionPerformer {
             .withEndpointConfiguration(new EndpointConfiguration("https://s3.${sourceRegion}.amazonaws.com", sourceRegion))//
             .withClientConfiguration(clientCfg)//
             .build();
-        script.echo("Looking for ${sourceFile} on ${sourceBucket}")
         s3desClientBuilder = AmazonS3ClientBuilder//
             .standard()//
             .withCredentials(credentialProvidor)//
@@ -44,9 +43,10 @@ class S3CopyCrossRegionPerformer {
         transferManager = TransferManagerBuilder.standard()
             .withS3Client(s3desClientBuilder)
             .build();
-        def fileName = sourceFile.substring(sourceFile.lastIndexOf('/') + 1, sourceFile.length())
+        def fileName = sourceFile.split('/')[-1]
+        script.echo("Uploading ${sourceFile} to ${targetBucket} at ${targetPath}${fileName}")
         Copy copy = transferManager.copy(new CopyObjectRequest(sourceBucket, sourceFile,
-            targetBucket, "${targetPath}/${fileName}"),
+            targetBucket, "${targetPath}${fileName}"),
             s3ClientBuilder, null);
         copy.waitForCopyResult();   
 
