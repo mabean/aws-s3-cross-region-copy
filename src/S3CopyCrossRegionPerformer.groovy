@@ -10,9 +10,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.Copy;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder
 import com.amazonaws.services.s3.transfer.TransferManager;
@@ -38,34 +35,23 @@ class S3CopyCrossRegionPerformer {
             .withClientConfiguration(clientCfg)//
             .build();
         script.echo("Looking for ${sourceFile} on ${sourceBucket}")
-        ListObjectsRequest lor = new ListObjectsRequest()
-            .withBucketName(sourceBucket)
-            .withPrefix(sourceFile);
-        ObjectListing objectListing = s3ClientBuilder.listObjects(lor);
-        script.echo("Uploading ${objectListing.getObjectSummaries()}")
-        for (S3ObjectSummary summary: objectListing.getObjectSummaries()) {
+        s3desClientBuilder = AmazonS3ClientBuilder//
+            .standard()//
+            .withCredentials(credentialProvidor)//
+            .withEndpointConfiguration(new EndpointConfiguration("https://s3.${targetRegion}.amazonaws.com", targetRegion))//
+            .withClientConfiguration(clientCfg)//
+            .build();
+        transferManager = TransferManagerBuilder.standard()
+            .withS3Client(s3desClientBuilder)
+            .build();
+        def fileName = sourceFile.substring(sourceFile.lastIndexOf('/') + 1, sourceFile.length())
+        Copy copy = transferManager.copy(new CopyObjectRequest(sourceBucket, sourceFile,
+            targetBucket, "${targetPath}/${fileName}"),
+            s3ClientBuilder, null);
+        copy.waitForCopyResult();   
 
-            SOURCE_KEY=summary.getKey();
-            DESTINATION_KEY=SOURCE_KEY
-
-            s3desClientBuilder = AmazonS3ClientBuilder//
-                .standard()//
-                .withCredentials(credentialProvidor)//
-                .withEndpointConfiguration(new EndpointConfiguration("https://s3.${targetRegion}.amazonaws.com", targetRegion))//
-                .withClientConfiguration(clientCfg)//
-                .build();
-
-            transferManager = TransferManagerBuilder.standard()
-                .withS3Client(s3desClientBuilder)
-                .build();
-
-            Copy copy = transferManager.copy(new CopyObjectRequest(sourceBucket, SOURCE_KEY,
-                targetBucket, DESTINATION_KEY),
-                s3ClientBuilder, null);
-            copy.waitForCopyResult();   
-        }
         transferManager?.shutdownNow();
-        s3ClientBuilder.shutdown();
-        s3desClientBuilder.shutdown();
+        s3ClientBuilder?.shutdown();
+        s3desClientBuilder?.shutdown();
     }
 }
