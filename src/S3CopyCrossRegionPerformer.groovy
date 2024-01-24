@@ -1,5 +1,5 @@
-@Grab('com.amazonaws:aws-java-sdk-core:1.12.642')
-@Grab('com.amazonaws:aws-java-sdk-s3:1.12.642')
+@Grab(group = 'com.amazonaws', module = 'aws-java-sdk-core', version = '1.12.642')
+@Grab(group = 'com.amazonaws', module = 'aws-java-sdk-s3', version = '1.12.642')
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
